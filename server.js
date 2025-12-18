@@ -1,14 +1,23 @@
 const express = require("express");
 const AWS = require("aws-sdk");
 const cors = require("cors");
+const path = require("path");
 const { v4: uuidv4 } = require("uuid");
 
 const app = express();
-app.use(express.json());
+const PORT = 3000;
+
+// Middlewares
 app.use(cors());
+app.use(express.json());
+
+// Serve frontend
+app.use(express.static(path.join(__dirname, "public")));
 
 // AWS config
-AWS.config.update({ region: "us-east-1" });
+AWS.config.update({
+  region: "us-east-1"
+});
 
 const dynamoDB = new AWS.DynamoDB.DocumentClient();
 const TABLE_NAME = "Notes";
@@ -16,7 +25,10 @@ const TABLE_NAME = "Notes";
 // Create note
 app.post("/notes", async (req, res) => {
   const { text } = req.body;
-  if (!text) return res.status(400).json({ error: "Note text required" });
+
+  if (!text) {
+    return res.status(400).json({ error: "Note text required" });
+  }
 
   const note = {
     NotesID: uuidv4(),
@@ -25,9 +37,14 @@ app.post("/notes", async (req, res) => {
   };
 
   try {
-    await dynamoDB.put({ TableName: TABLE_NAME, Item: note }).promise();
+    await dynamoDB.put({
+      TableName: TABLE_NAME,
+      Item: note
+    }).promise();
+
     res.status(201).json(note);
   } catch (err) {
+    console.error("DynamoDB Error:", err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -35,11 +52,18 @@ app.post("/notes", async (req, res) => {
 // Get all notes
 app.get("/notes", async (req, res) => {
   try {
-    const data = await dynamoDB.scan({ TableName: TABLE_NAME }).promise();
+    const data = await dynamoDB.scan({
+      TableName: TABLE_NAME
+    }).promise();
+
     res.json(data.Items || []);
   } catch (err) {
+    console.error("Scan Error:", err);
     res.status(500).json({ error: err.message });
   }
 });
 
-app.listen(3000, () => console.log("Server running on port 3000"));
+// Start server
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
