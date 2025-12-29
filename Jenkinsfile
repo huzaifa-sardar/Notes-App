@@ -7,6 +7,9 @@ pipeline {
         CONTAINER_NAME = "notes-app-container"
         PORT = "3000"
         AWS_REGION = "us-east-1"
+
+        AWS_ACCESS_KEY_ID     = credentials('AWS_ACCESS_KEY_ID')
+        AWS_SECRET_ACCESS_KEY = credentials('AWS_SECRET_ACCESS_KEY')
     }
 
     stages {
