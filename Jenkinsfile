@@ -22,8 +22,9 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
+                // Force rebuild to ensure latest code is included
                 sh '''
-                  docker build -t $IMAGE_NAME .
+                  docker build --no-cache -t $IMAGE_NAME .
                 '''
             }
         }
